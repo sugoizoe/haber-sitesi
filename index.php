@@ -119,6 +119,21 @@ $user_name = $_SESSION['user_name'] ?? '';
 $page = $_GET['page'] ?? 'home';
 $page = preg_replace('/[^a-z_]/', '', $page);
 
+// Handle logout BEFORE any HTML output
+if ($page === 'logout') {
+    $_SESSION = [];
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+    header('Location: ?page=home');
+    exit;
+}
+
 // Display messages
 $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
 $success = isset($_GET['success']) ? 'Başarıyla kaydoldunuz. Hoş geldiniz!' : '';
@@ -336,7 +351,6 @@ document.getElementById('authModal').addEventListener('click', function(e) {
         case 'home': include 'pages/home.php'; break;
         case 'categories': include 'pages/categories.php'; break;
         case 'latest': include 'pages/latest.php'; break;
-        case 'logout': include 'pages/logout.php'; exit;
         case 'admin': if ($user_role === 'Admin') include 'pages/admin.php'; break;
         case 'editor': if (in_array($user_role, ['Admin', 'Editor'])) include 'pages/editor.php'; break;
         default: include 'pages/home.php';
