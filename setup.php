@@ -19,6 +19,12 @@ try {
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
     
+    // Eski tabloları sil (düzen kontrol için)
+    $pdo->exec("DROP TABLE IF EXISTS comments");
+    $pdo->exec("DROP TABLE IF EXISTS news");
+    $pdo->exec("DROP TABLE IF EXISTS categories");
+    $pdo->exec("DROP TABLE IF EXISTS admins");
+    
     // Admins tablosu
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS admins (
@@ -39,11 +45,11 @@ try {
             content LONGTEXT NOT NULL,
             category_id INT DEFAULT 1,
             image_url VARCHAR(255),
-            admin_id INT,
+            admin_id INT NULL,
             views INT DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
+            CONSTRAINT fk_news_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
     
