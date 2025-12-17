@@ -160,7 +160,7 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haber Sitesi - Güncel Haberler</title>
+    <title>Bartın 24 - Güncel Haberler</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family: system-ui, -apple-system, Segoe UI, Roboto; background:#f6f7fb; color:#222; }
@@ -235,7 +235,7 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
 <body>
 <header>
     <nav>
-        <div class="brand">📰 Haber Sitesi</div>
+        <div class="brand">📰 Bartın 24</div>
         <div class="nav-center">
             <a href="?page=home">Anasayfa</a>
             <a href="?page=categories">Kategoriler</a>
@@ -358,6 +358,6 @@ document.getElementById('authModal').addEventListener('click', function(e) {
     ?>
 </main>
 
-<footer>© 2025 Haber Sitesi - Tüm Hakları Saklıdır</footer>
+<footer>© 2025 Bartın 24 - Tüm Hakları Saklıdır</footer>
 </body>
 </html>

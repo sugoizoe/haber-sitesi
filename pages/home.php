@@ -40,19 +40,17 @@ try {
 
 // Image descriptions mapping
 $image_descriptions = [
-    'teknoloji' => 'Yapay zeka ve teknoloji yenilikleri hayatımızı hızla değiştiriyor. Modern çözümler işletmelerde verimliliği artırıyor.',
-    'spor' => 'Spor dünyası sürekli heyecan ve coşkuyla dolu. Atletlerin performansları bizi her zaman etkileyip ilham veriyor.',
-    'genel' => 'Ülke ve dünya gündemine dair en son gelişmeleri takip edin. Önemli kararlar ve politikalar hayatımızı şekillendiriyor.',
-    'sağlık' => 'Tıbbi inovasyonlar insanların hayat kalitesini iyileştirmek için çalışıyor. Sağlığa yapılan yatırımlar gelecek nesli kurtarıyor.',
-    'sosyal' => 'Dijital platformlar toplumun iletişim şeklini kökten değiştirdi. Sosyal medya artık haberlerin ana kaynağı haline geldi.',
+    'genel' => 'Bartın ve Amasra\'dan güncel gelişmeler. Yerel haber ve etkinliklerden haberdar olun.',
+    'kultur' => 'Bartın\'ın tarihi dokusu ve turistik güzellikleri. Bölgenin kültürel zenginliklerini keşfedin.',
+    'yerel' => 'Yerel etkinlikler ve gelişmeler. Bartın halkının günlük hayatından kesitler.',
 ];
 
 ?>
 
 <div class="container">
     <div style="text-align: center; margin-bottom: 40px;">
-        <h1 style="color: #111827; font-size: 32px; margin-bottom: 10px;">Güncel Haberler</h1>
-        <p style="color: #6b7280; font-size: 16px;">Dünya ve Türkiye'den en son haberleri takip edin</p>
+        <h1 style="color: #111827; font-size: 32px; margin-bottom: 10px;">Bartın'dan Güncel Haberler</h1>
+        <p style="color: #6b7280; font-size: 16px;">Bartın ve Amasra'dan en son haberleri takip edin</p>
     </div>
     
     <?php if (!empty($news_items)): ?>
@@ -89,19 +87,15 @@ $image_descriptions = [
                         <!-- Image-related description -->
                         <p style="color: #6b7280; font-size: 13px; line-height: 1.6; margin: 10px 0;">
                             <?php 
-                            $category_lower = strtolower($news['category_name'] ?? 'spor');
+                            $category_lower = strtolower($news['category_name'] ?? 'genel');
                             $desc = '';
                             
-                            if (strpos($category_lower, 'teknoloji') !== false) {
-                                $desc = $image_descriptions['teknoloji'];
-                            } elseif (strpos($category_lower, 'spor') !== false) {
-                                $desc = $image_descriptions['spor'];
-                            } elseif (strpos($category_lower, 'genel') !== false) {
-                                $desc = $image_descriptions['genel'];
-                            } elseif (strpos($category_lower, 'sağlık') !== false) {
-                                $desc = $image_descriptions['sağlık'];
+                            if (strpos($category_lower, 'kultur') !== false || strpos($category_lower, 'kültür') !== false) {
+                                $desc = $image_descriptions['kultur'];
+                            } elseif (strpos($category_lower, 'yerel') !== false) {
+                                $desc = $image_descriptions['yerel'];
                             } else {
-                                $desc = $image_descriptions['sosyal'];
+                                $desc = $image_descriptions['genel'];
                             }
                             
                             echo $desc;

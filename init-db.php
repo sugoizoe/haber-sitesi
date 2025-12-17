@@ -91,9 +91,9 @@ try {
     
     // Insert categories
     $pdo->exec("INSERT INTO categories (name, slug, description) VALUES 
-        ('Genel', 'genel', 'Güncel ve genel haberler'),
-        ('Spor', 'spor', 'Spor dünyasından haberler'),
-        ('Teknoloji', 'teknoloji', 'Teknoloji ve inovasyon haberleri')");
+        ('Genel', 'genel', 'Bartın ve Amasra\'dan güncel haberler'),
+        ('Kültür', 'kultur', 'Bartın\'ın kültür ve turizm haberleri'),
+        ('Yerel', 'yerel', 'Yerel etkinlikler ve gelişmeler')");
     
     // Insert admin users
     $admin_pass = password_hash('admin123', PASSWORD_DEFAULT);
@@ -111,45 +111,45 @@ try {
     // Insert demo news articles
     $news_items = [
         [
-            'title' => 'Yapay Zeka Teknolojisinde Yeni Dönem Başladı',
-            'excerpt' => 'Son yıllarda yapay zeka teknolojisi hızla gelişmekte ve hayatımızın her alanına girmeye başlamaktadır.',
-            'content' => 'Yapay zeka teknolojisinde yeni dönem başladı. Son yıllarda yapay zeka teknolojisi hızla gelişmekte ve hayatımızın her alanına girmeye başlamaktadır. Özellikle dil modelleri ve görüntü işleme alanlarında yapılan gelişmeler oldukça etkileyicidir. Teknoloji devleri bu alanda yatırımlarını artırmaya devam etmektedir.',
-            'category_id' => 3,
+            'title' => 'Ağlayan Ağaç Ziyareti Yoğunluğu',
+            'excerpt' => 'Amasra\'nın ünlü Ağlayan Ağaç noktası turistlerin yoğun ilgisiyle karşılaşıyor. Hafta sonları ziyaretçi akını yaşanıyor.',
+            'content' => 'Amasra\'nın en önemli doğal anıtlarından biri olan Ağlayan Ağaç, özellikle hafta sonları yoğun ziyaretçi akınına sahne oluyor. Tarihi ağacın benzersiz görüntüsü fotoğraf meraklılarının da ilgisini çekiyor. Yerel yetkililer bölgenin korunması için çeşitli önlemler alıyor.',
+            'category_id' => 1,
             'admin_user_id' => 2
         ],
         [
-            'title' => 'Milli Futbol Takımı Önemli Maçta Galip Geldi',
-            'excerpt' => 'Milli futbol takımı, uluslararası bir maçta güzel bir performans sergileyerek rakibini 3-1 mağlup etti.',
-            'content' => 'Milli futbol takımı, bu akşam oynadığı uluslararası maçta harika bir performans sergileyerek rakibini 3-1 mağlup etti. Takım, tüm oyuncu ve taraftarların desteğiyle büyük bir başarıya imza attı. Hücum oyuncuları maçta çok iyi bir performans gösterdiler.',
-            'category_id' => 2,
-            'admin_user_id' => 2
-        ],
-        [
-            'title' => 'Ekonomide Yeni Teşvik Paketleri Açıklandı',
-            'excerpt' => 'Hükümet, ekonomiyi canlandırmak amacıyla yeni teşvik paketlerini resmi olarak açıkladı.',
-            'content' => 'Hükümet, ekonomiyi canlandırmak amacıyla yeni teşvik paketlerini resmi olarak açıkladı. Bu paketler, özellikle küçük ve orta ölçekli işletmeleri desteklemek için tasarlanmıştır. Beklentilere göre bu paketler ekonomide olumlu etkiler yaratacaktır.',
+            'title' => 'Turist 300 Kişilik Rus Gemi Ziyareti',
+            'excerpt' => '300 kişilik Rus turist gemisi Amasra limanına demir attı. Turistler tarihi Amasra\'yı gezmeye başladı.',
+            'content' => 'Bu sabah saatlerinde Amasra limanına 300 kişilik Rus turist gemisi demir attı. Rusya\'dan gelen turistler, Amasra\'nın tarihi dokusunu, kalelerini ve doğal güzelliklerini gezmek için sahile çıktı. Yerel esnaf yoğun ilgiyle karşılaştı ve turistlere Bartın yöresel ürünlerini tanıttı.',
             'category_id' => 1,
             'admin_user_id' => 1
         ],
         [
-            'title' => 'Sosyal Medya Platformu Yeni Özellikleri Tanıttı',
-            'excerpt' => 'Popüler sosyal medya platformu, kullanıcı deneyimini iyileştirmek amacıyla yeni özellikleri tanıttı.',
-            'content' => 'Popüler sosyal medya platformu, kullanıcı deneyimini iyileştirmek amacıyla yeni özellikleri tanıttı. Yeni özellikler arasında geliştirilmiş gizlilik kontrolü ve yeni filtreleme seçenekleri yer almaktadır. Platformun sözcüsüne göre bu özelliklerin kullanıcı memnuniyetini artıracağı düşünülmektedir.',
-            'category_id' => 3,
-            'admin_user_id' => 1
-        ],
-        [
-            'title' => 'Sağlık Sektöründe Inovasyonlar Gün Geçtikçe Artıyor',
-            'excerpt' => 'Tıbbi teknoloji alanında yapılan yenilikler, hastalıkların tedavisinde devrim yaratıyor.',
-            'content' => 'Sağlık sektöründe inovasyonlar gün geçtikçe artıyor. Tıbbi teknoloji alanında yapılan yenilikler, hastalıkların tedavisinde devrim yaratıyor. Özellikle teşhis teknolojileri ve uzaktan sağlık hizmetleri oldukça gelişmiş durumda. Dünya çapında hastaneler bu yeni teknolojileri benimsemeye başlamışlardır.',
-            'category_id' => 3,
+            'title' => 'Dün Gece Yarısı Yaşanan Kavga Detayları',
+            'excerpt' => 'Amasra\'da dün gece yarısı meydana gelen kavgada 2 kişi yaralandı. Olay yerine polis ve sağlık ekipleri sevk edildi.',
+            'content' => 'Amasra ilçesinde dün gece yarısı saat 00:30 sıralarında meydana gelen kavgada iki kişi yaralandı. Olay, merkez mahallede bulunan bir kahvehanede çıkan tartışmanın büyümesi sonucu meydana geldi. Yaralılar Bartın Devlet Hastanesi\'ne kaldırıldı. Polis olayla ilgili soruşturma başlattı.',
+            'category_id' => 1,
             'admin_user_id' => 2
         ],
         [
-            'title' => 'Spor Dünyasının En Prestijli Turnuvası Başlıyor',
-            'excerpt' => 'Spor dünyasının en prestijli turnuvası yarın başlayacak. Dünyanın dört bir yanından takımlar katılacak.',
-            'content' => 'Spor dünyasının en prestijli turnuvası yarın başlayacak. Dünyanın dört bir yanından en iyi takımlar katılacak. Organizatörler, turnuvanın tarihin en büyük turnuvası olacağını söylemektedir. Milyonlarca taraftar bu büyük etkinliği takip edecek.',
-            'category_id' => 2,
+            'title' => 'Bartın\'da Çarşıda Olması Gerekenler Röportajı',
+            'excerpt' => 'Bartın çarşısında esnaf ve vatandaşlarla röportaj yaptık. Çarşıda olması gerekenler hakkında görüşler aldık.',
+            'content' => 'Bartın çarşısında esnaf ve vatandaşlarla yaptığımız röportajda, çarşının gelişimi için neler yapılması gerektiği konusunda önemli fikirler ortaya çıktı. Esnaflar otopark ihtiyacı, çevre düzenlemesi ve tanıtım eksikliği konularında görüş bildirdi. Vatandaşlar ise daha fazla sosyal alan ve yeşil alan talep etti.',
+            'category_id' => 1,
+            'admin_user_id' => 1
+        ],
+        [
+            'title' => 'İnkumu\'ndaki Ani Hava Değişimi',
+            'excerpt' => 'İnkumu sahilinde ani hava değişimi yaşandı. Plaja gelen vatandaşlar sağanak yağmurdan etkilendi.',
+            'content' => 'İnkumu sahilinde bugün öğleden sonra yaşanan ani hava değişimi plajdaki vatandaşları hazırlıksız yakaladı. Güneşli havadan aniden sağanak yağmura geçildi. Meteoroloji yetkilileri önümüzdeki günlerde benzer hava değişimlerinin olabileceği konusunda uyarıda bulundu. Sahil esnafı ziyaretçileri barınakta korudu.',
+            'category_id' => 1,
+            'admin_user_id' => 2
+        ],
+        [
+            'title' => 'Çekiciler Çarşısı Güzellikleri',
+            'excerpt' => 'Bartın\'ın tarihi Çekiciler Çarşısı, restore edilen yapılarıyla büyük ilgi görüyor. Turistler ve fotoğrafçıların gözdesi.',
+            'content' => 'Bartın\'ın tarihi Çekiciler Çarşısı, son yıllarda yapılan restorasyon çalışmaları sonrası şehrin en gözde mekanlarından biri haline geldi. Osmanlı döneminden kalma ahşap evler, taş sokaklar ve tarihi atmosfer fotoğraf tutkunlarının ve turistlerin ilgi odağı. Çarşıda bulunan el sanatları atölyeleri ve yöresel ürün satan dükkânlar ziyaretçilere unutulmaz bir deneyim sunuyor.',
+            'category_id' => 1,
             'admin_user_id' => 1
         ]
     ];

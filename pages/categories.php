@@ -5,10 +5,9 @@ $news_items = [];
 
 // Image descriptions mapping
 $image_descriptions = [
-    'teknoloji' => 'Yapay zeka ve teknoloji yenilikleri hayatımızı hızla değiştiriyor. Modern çözümler işletmelerde verimliliği artırıyor.',
-    'spor' => 'Spor dünyası sürekli heyecan ve coşkuyla dolu. Atletlerin performansları bizi her zaman etkileyip ilham veriyor.',
-    'genel' => 'Ülke ve dünya gündemine dair en son gelişmeleri takip edin. Önemli kararlar ve politikalar hayatımızı şekillendiriyor.',
-    'sağlık' => 'Tıbbi inovasyonlar insanların hayat kalitesini iyileştirmek için çalışıyor. Sağlığa yapılan yatırımlar gelecek nesli kurtarıyor.',
+    'genel' => 'Bartın ve Amasra\'dan güncel gelişmeler. Yerel haber ve etkinliklerden haberdar olun.',
+    'kultur' => 'Bartın\'n tarihi dokusu ve turistik güzelliklerini keşfedin. Bölgenin kültürel zenginlikleri sizleri bekliyor.',
+    'yerel' => 'Yerel etkinlikler ve gelişmeler. Bartın halkının günlük hayatından kesitler.',
 ];
 
 // Get images from uploads
@@ -113,12 +112,10 @@ try {
                                     $cat_lower = strtolower($news['category_name'] ?? 'genel');
                                     $desc = '';
                                     
-                                    if (strpos($cat_lower, 'teknoloji') !== false) {
-                                        $desc = $image_descriptions['teknoloji'];
-                                    } elseif (strpos($cat_lower, 'spor') !== false) {
-                                        $desc = $image_descriptions['spor'];
-                                    } elseif (strpos($cat_lower, 'sağlık') !== false) {
-                                        $desc = $image_descriptions['sağlık'];
+                                    if (strpos($cat_lower, 'kultur') !== false || strpos($cat_lower, 'kültür') !== false) {
+                                        $desc = $image_descriptions['kultur'];
+                                    } elseif (strpos($cat_lower, 'yerel') !== false) {
+                                        $desc = $image_descriptions['yerel'];
                                     } else {
                                         $desc = $image_descriptions['genel'];
                                     }
