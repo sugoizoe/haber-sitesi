@@ -157,10 +157,10 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
         .nav-center a { color:#e5e7eb; text-decoration:none; padding:8px 12px; border-radius:6px; transition:all 0.2s; font-weight:500; }
         .nav-center a:hover { background:#1f2937; }
         .nav-right { display:flex; gap:12px; align-items:center; }
-        .user-info { color:#e5e7eb; font-size:13px; display:flex; align-items:center; gap:8px; }
-        .btn-modal { background:#6366f1; color:#fff; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; }
+        .user-info { color:#e5e7eb; font-size:14px; display:flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(255,255,255,0.05); border-radius:8px; }
+        .btn-modal { background:#6366f1; color:#fff; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; text-decoration:none; display:inline-block; }
         .btn-modal:hover { background:#4f46e5; transform:translateY(-2px); }
-        .btn-logout { background:#ef4444; color:#fff; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; }
+        .btn-logout { background:#ef4444; color:#fff; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; text-decoration:none; display:inline-block; }
         .btn-logout:hover { background:#dc2626; }
         
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); z-index:1000; align-items:center; justify-content:center; }
@@ -229,13 +229,13 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
         <div class="nav-right">
             <?php if($is_logged_in && !empty($user_name)): ?>
                 <div class="user-info">
-                    <?= htmlspecialchars($user_name) ?> 
+                    <span style="margin-right: 8px;">👤 <?= htmlspecialchars($user_name) ?></span>
                     <span class="badge badge-<?= strtolower($user_role === 'Guest' ? 'user' : $user_role) ?>"><?= $user_role ?></span>
                 </div>
                 <?php if($user_role === 'Admin'): ?>
-                    <a href="?page=admin" class="btn-modal">Yönet</a>
+                    <a href="?page=admin" class="btn-modal" style="margin-left: 12px;">Yönet</a>
                 <?php elseif($user_role === 'Editor'): ?>
-                    <a href="?page=editor" class="btn-modal">İçerik</a>
+                    <a href="?page=editor" class="btn-modal" style="margin-left: 12px;">İçerik</a>
                 <?php endif; ?>
                 <a href="?page=logout" class="btn-logout">Çıkış</a>
             <?php else: ?>
