@@ -231,6 +231,8 @@ document.getElementById('authModal').addEventListener('click', function(e) {
     
     switch ($page) {
         case 'home': include 'pages/home.php'; break;
+        case 'categories': include 'pages/categories.php'; break;
+        case 'latest': include 'pages/latest.php'; break;
         case 'logout': include 'pages/logout.php'; exit;
         case 'admin': if ($user_role === 'Admin') include 'pages/admin.php'; break;
         case 'editor': if (in_array($user_role, ['Admin', 'Editor'])) include 'pages/editor.php'; break;
