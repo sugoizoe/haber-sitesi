@@ -12,9 +12,9 @@ try {
     die('DB: ' . htmlspecialchars($e->getMessage()));
 }
 
-$is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['admin_id']);
-$user_role = $_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? 'Guest';
-$user_name = $_SESSION['user_username'] ?? $_SESSION['admin_username'] ?? '';
+$is_logged_in = isset($_SESSION['user_id']);
+$user_role = $_SESSION['user_role'] ?? 'Guest';
+$user_name = $_SESSION['user_name'] ?? '';
 $page = $_GET['page'] ?? 'home';
 $page = preg_replace('/[^a-z_]/', '', $page);
 
@@ -116,10 +116,10 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
             <a href="?page=latest">Son Haberler</a>
         </div>
         <div class="nav-right">
-            <?php if($is_logged_in): ?>
+            <?php if($is_logged_in && !empty($user_name)): ?>
                 <div class="user-info">
                     <?= htmlspecialchars($user_name) ?> 
-                    <span class="badge badge-<?= strtolower($user_role) ?>"><?= $user_role ?></span>
+                    <span class="badge badge-<?= strtolower($user_role === 'Guest' ? 'user' : $user_role) ?>"><?= $user_role ?></span>
                 </div>
                 <?php if($user_role === 'Admin'): ?>
                     <a href="?page=admin" class="btn-modal">Yönet</a>
