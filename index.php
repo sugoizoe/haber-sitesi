@@ -12,6 +12,107 @@ try {
     die('DB: ' . htmlspecialchars($e->getMessage()));
 }
 
+// Process login/register BEFORE any HTML output
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] === 'login') {
+        $username_or_email = trim($_POST['username_or_email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $user_type = $_POST['user_type'] ?? 'user';
+        
+        if (empty($username_or_email) || empty($password)) {
+            $_SESSION['flash_error'] = 'Kullanıcı adı/email ve şifre gerekli.';
+        } else {
+            if ($user_type === 'admin') {
+                // Admin/Editor login
+                try {
+                    $stmt = $pdo->prepare('SELECT id, username, role, password FROM admin_users WHERE username = ? OR email = ? LIMIT 1');
+                    $stmt->execute([$username_or_email, $username_or_email]);
+                    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($admin && password_verify($password, $admin['password']) && $admin['role'] !== 'User') {
+                        $_SESSION['user_id'] = $admin['id'];
+                        $_SESSION['user_name'] = $admin['username'];
+                        $_SESSION['user_role'] = $admin['role'];
+                        header('Location: ?page=home');
+                        exit;
+                    } else {
+                        $_SESSION['flash_error'] = 'Yanlış kullanıcı adı/email veya şifre.';
+                    }
+                } catch (PDOException $e) {
+                    $_SESSION['flash_error'] = 'Veritabanı hatası: ' . htmlspecialchars($e->getMessage());
+                }
+            } else {
+                // User login
+                try {
+                    $stmt = $pdo->prepare('SELECT id, username, email, password FROM users WHERE username = ? OR email = ? LIMIT 1');
+                    $stmt->execute([$username_or_email, $username_or_email]);
+                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($user && password_verify($password, $user['password'])) {
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['user_name'] = $user['username'];
+                        $_SESSION['user_role'] = 'User';
+                        header('Location: ?page=home');
+                        exit;
+                    } else {
+                        $_SESSION['flash_error'] = 'Yanlış kullanıcı adı/email veya şifre.';
+                    }
+                } catch (PDOException $e) {
+                    $_SESSION['flash_error'] = 'Veritabanı hatası: ' . htmlspecialchars($e->getMessage());
+                }
+            }
+        }
+        header('Location: ?page=home');
+        exit;
+    } elseif (isset($_POST['action']) && $_POST['action'] === 'register') {
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $password_confirm = $_POST['password_confirm'] ?? '';
+        
+        $errors = [];
+        
+        if (empty($username)) $errors[] = 'Kullanıcı adı gerekli.';
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Geçerli email gerekli.';
+        if (empty($password)) $errors[] = 'Şifre gerekli.';
+        if ($password !== $password_confirm) $errors[] = 'Şifreler eşleşmiyor.';
+        
+        if (empty($errors)) {
+            try {
+                // Check if username or email already exists
+                $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? OR email = ?');
+                $stmt->execute([$username, $email]);
+                if ($stmt->fetch()) {
+                    $errors[] = 'Bu kullanıcı adı veya email zaten kayıtlı.';
+                } else {
+                    // Insert new user
+                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
+                    $stmt->execute([$username, $email, $hashed_password]);
+                    
+                    // Auto-login
+                    $user_id = $pdo->lastInsertId();
+                    $_SESSION['user_id'] = $user_id;
+                    $_SESSION['user_name'] = $username;
+                    $_SESSION['user_role'] = 'User';
+                    $_SESSION['flash_success'] = 'Başarıyla kaydoldunuz! Hoş geldiniz.';
+                    
+                    header('Location: ?page=home');
+                    exit;
+                }
+            } catch (PDOException $e) {
+                $errors[] = 'Veritabanı hatası: ' . htmlspecialchars($e->getMessage());
+            }
+        }
+        
+        if (!empty($errors)) {
+            $_SESSION['flash_error'] = implode(' | ', $errors);
+        }
+        header('Location: ?page=home');
+        exit;
+    }
+}
+
 $is_logged_in = isset($_SESSION['user_id']);
 $user_role = $_SESSION['user_role'] ?? 'Guest';
 $user_name = $_SESSION['user_name'] ?? '';
@@ -19,8 +120,18 @@ $page = $_GET['page'] ?? 'home';
 $page = preg_replace('/[^a-z_]/', '', $page);
 
 // Display messages
-$error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : (isset($_GET['error_msg']) ? htmlspecialchars($_GET['error_msg']) : '');
+$error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
 $success = isset($_GET['success']) ? 'Başarıyla kaydoldunuz. Hoş geldiniz!' : '';
+
+// Get flash messages from session
+if (isset($_SESSION['flash_error'])) {
+    $error = $_SESSION['flash_error'];
+    unset($_SESSION['flash_error']);
+}
+if (isset($_SESSION['flash_success'])) {
+    $success = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
 
 // Erişim kontrolleri
 $protected = ['admin' => ['Admin'], 'editor' => ['Admin', 'Editor'], 'profile' => ['User', 'Admin', 'Editor']];
@@ -146,8 +257,9 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
         </div>
         
         <!-- Login Form -->
-        <form class="modal-form show" id="loginForm" method="POST" action="?page=login_process">
+        <form class="modal-form show" id="loginForm" method="POST">
             <h2>Giriş Yap</h2>
+            <input type="hidden" name="action" value="login">
             <div class="form-group">
                 <label>Kullanıcı Adı / Email:</label>
                 <input type="text" name="username_or_email" required>
@@ -167,8 +279,9 @@ if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
         </form>
         
         <!-- Register Form -->
-        <form class="modal-form" id="registerForm" method="POST" action="?page=register_process">
+        <form class="modal-form" id="registerForm" method="POST">
             <h2>Kayıt Ol</h2>
+            <input type="hidden" name="action" value="register">
             <div class="form-group">
                 <label>Kullanıcı Adı:</label>
                 <input type="text" name="username" required>
@@ -219,16 +332,6 @@ document.getElementById('authModal').addEventListener('click', function(e) {
     <?php if (!empty($error)): ?><div class="error"><?= $error ?></div><?php endif; ?>
     <?php if (!empty($success)): ?><div class="success"><?= $success ?></div><?php endif; ?>
     <?php
-    // Handle login/register from modal
-    if ($page === 'login_process') {
-        include 'pages/login_process.php';
-        exit;
-    }
-    if ($page === 'register_process') {
-        include 'pages/register_process.php';
-        exit;
-    }
-    
     switch ($page) {
         case 'home': include 'pages/home.php'; break;
         case 'categories': include 'pages/categories.php'; break;
