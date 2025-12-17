@@ -1,10 +1,104 @@
 <?php
-// Minimal PHP wrapper to include configuration and serve the existing HTML.
-// This preserves the current site while PHP pages are recreated.
-@include __DIR__ . '/config.php';
-header('Content-Type: text/html; charset=utf-8');
-readfile(__DIR__ . '/index.html');
+session_start();
+require_once __DIR__ . '/config.php';
+
+try {
+  $pdo = new PDO(
+    "mysql:host=$db_host;dbname=$db_name;charset=$db_charset",
+    $db_user,
+    $db_pass,
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+  );
+} catch (PDOException $e) {
+  $db_error = $e->getMessage();
+}
+
+$news = [];
+if (!isset($db_error)) {
+  $stmt = $pdo->query("SELECT id, title, content, image_url, created_at FROM news ORDER BY created_at DESC LIMIT 12");
+  $news = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Haber Sitesi</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:#f6f7fb; color:#222; }
+    .navbar { position:sticky; top:0; background:#111827; color:#fff; padding:12px 20px; display:flex; gap:16px; align-items:center; z-index:10; }
+    .navbar a { color:#e5e7eb; text-decoration:none; padding:8px 10px; border-radius:6px; }
+    .navbar a:hover { background:#1f2937; }
+    .brand { font-weight:700; color:#fff; margin-right:auto; }
+    .container { max-width:1100px; margin:24px auto; padding:0 16px; }
+    .hero { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; padding:40px 24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.15); }
+    .hero h1 { margin:0 0 8px; font-size:32px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-top:20px; }
+    .card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.06); display:flex; flex-direction:column; }
+    .card img { width:100%; height:160px; object-fit:cover; background:#eef2ff; }
+    .card .p { padding:14px; }
+    .card h3 { margin:0 0 8px; font-size:18px; color:#111827; }
+    .card p { margin:0; color:#4b5563; font-size:14px; line-height:1.4; }
+    .muted { color:#6b7280; font-size:12px; margin-top:8px; }
+    .btn { display:inline-block; padding:10px 14px; background:#6366f1; color:#fff; text-decoration:none; border-radius:8px; margin-top:10px; }
+    .btn:hover { background:#4f46e5; }
+    footer { text-align:center; color:#6b7280; padding:30px 0; }
+    .empty { background:#fff; padding:30px; border-radius:12px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  </style>
+  <link rel="icon" href="uploads/amasra-btv-logo.svg">
+  <meta name="description" content="Basit Haber Sitesi">
+  <meta name="theme-color" content="#111827">
+  <script>
+    function truncate(t, n){ return t.length>n ? t.slice(0,n).trim()+"…" : t }
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <a class="brand" href="/habersitesi/">HaberSitesi</a>
+    <a href="/habersitesi/">Anasayfa</a>
+    <a href="/habersitesi/user_login.php">Giriş</a>
+    <a href="/habersitesi/register.php">Kayıt Ol</a>
+    <a href="/habersitesi/admin/dashboard.php">Admin</a>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <h1>Günün Haberleri</h1>
+      <div style="opacity:.9">Son eklenen haberler burada listelenir.</div>
+    </div>
+
+    <?php if(isset($db_error)): ?>
+      <div class="empty" style="margin-top:20px;color:#b91c1c;">Veritabanı hatası: <?= htmlspecialchars($db_error) ?></div>
+    <?php elseif(empty($news)): ?>
+      <div class="empty" style="margin-top:20px;">Henüz haber yok. Admin panelinden haber ekleyin.</div>
+    <?php else: ?>
+      <div class="grid" style="margin-top:20px;">
+        <?php foreach($news as $n): ?>
+          <article class="card">
+            <?php if(!empty($n['image_url'])): ?>
+              <img src="<?= htmlspecialchars($n['image_url']) ?>" alt="">
+            <?php else: ?>
+              <img src="uploads/amasra-hero.jpg" alt="">
+            <?php endif; ?>
+            <div class="p">
+              <h3><?= htmlspecialchars($n['title']) ?></h3>
+              <p><?= htmlspecialchars(mb_substr(strip_tags($n['content']),0,120)) ?><?= mb_strlen(strip_tags($n['content']))>120?'…':'' ?></p>
+              <div class="muted"><?= htmlspecialchars(date('d.m.Y H:i', strtotime($n['created_at']))) ?></div>
+              <a class="btn" href="news_detail.php?id=<?= (int)$n['id'] ?>">Oku</a>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
+
+  <footer>
+    © <?= date('Y') ?> HaberSitesi
+  </footer>
+</body>
+</html>
 <?php
 require_once __DIR__ . '/db.php';
 

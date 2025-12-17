@@ -23,6 +23,7 @@ try {
     $pdo->exec("DROP TABLE IF EXISTS comments");
     $pdo->exec("DROP TABLE IF EXISTS news");
     $pdo->exec("DROP TABLE IF EXISTS categories");
+    $pdo->exec("DROP TABLE IF EXISTS users");
     $pdo->exec("DROP TABLE IF EXISTS admins");
     
     // Admins tablosu
@@ -34,6 +35,17 @@ try {
             email VARCHAR(100),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    // Users tablosu (site kullanıcıları)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) UNIQUE NOT NULL,
+            email VARCHAR(120) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
     
@@ -69,12 +81,14 @@ try {
         CREATE TABLE IF NOT EXISTS comments (
             id INT AUTO_INCREMENT PRIMARY KEY,
             news_id INT NOT NULL,
+            user_id INT NULL,
             author_name VARCHAR(100) NOT NULL,
             author_email VARCHAR(100),
             content TEXT NOT NULL,
             status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE
+            FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
     
@@ -92,12 +106,17 @@ try {
         INSERT IGNORE INTO admins (username, password, email) VALUES
         ('admin', '$default_password', 'admin@example.com')
     ");
+
+    // Örnek kullanıcı ekle (kullanıcı adı: kullanici, şifre: kullanici123)
+    $default_user_password = password_hash('kullanici123', PASSWORD_DEFAULT);
+    $pdo->exec("INSERT IGNORE INTO users (username, email, password) VALUES ('kullanici', 'user@example.com', '$default_user_password')");
     
     $message = 'Veritabanı tabloları başarıyla oluşturuldu!<br>';
     $message .= 'Admin Giriş Bilgileri: <br>';
     $message .= '- Kullanıcı Adı: <strong>admin</strong><br>';
     $message .= '- Şifre: <strong>12345</strong><br><br>';
-    $message .= '<a href="login.php">Admin Paneline Git</a>';
+    $message .= '<a href="login.php">Admin Paneline Git</a><br>';
+    $message .= 'Kullanıcı Girişi: kullanıcı/kullanici123 → <a href="user_login.php">Giriş</a>';
     
 } catch (PDOException $e) {
     $error = 'Hata: ' . $e->getMessage();

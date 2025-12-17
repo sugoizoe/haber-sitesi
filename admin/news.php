@@ -35,10 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
     if (!empty($title) && !empty($content)) {
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO news (title, content, category_id, image_url, created_at) 
-                 VALUES (?, ?, ?, ?, NOW())'
+                'INSERT INTO news (title, content, category_id, image_url, admin_id, created_at) 
+                 VALUES (?, ?, ?, ?, ?, NOW())'
             );
-            $stmt->execute([$title, $content, $category_id, $image_url]);
+            $stmt->execute([$title, $content, $category_id, $image_url, $_SESSION['admin_id']]);
             $message = 'Haber başarıyla eklendi!';
         } catch (PDOException $e) {
             $error = 'Haber eklenirken hata oluştu: ' . $e->getMessage();
