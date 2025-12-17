@@ -8,6 +8,12 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 $admin_username = $_SESSION['admin_username'] ?? 'Admin';
+$admin_role = $_SESSION['admin_role'] ?? 'admin';
+if ($admin_role !== 'admin') {
+    http_response_code(403);
+    echo 'Bu sayfaya sadece adminler erişebilir.';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="tr">

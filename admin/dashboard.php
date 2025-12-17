@@ -21,6 +21,7 @@ $_SESSION['login_time'] = time();
 require_once __DIR__ . '/../config.php';
 
 $admin_username = $_SESSION['admin_username'] ?? 'Admin';
+$admin_role = $_SESSION['admin_role'] ?? 'admin';
 ?>
 <!DOCTYPE html>
 <html lang="tr">

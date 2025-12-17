@@ -10,6 +10,7 @@ if (!isset($_SESSION['admin_id'])) {
 require_once __DIR__ . '/../config.php';
 
 $admin_username = $_SESSION['admin_username'] ?? 'Admin';
+$admin_role = $_SESSION['admin_role'] ?? 'admin';
 $action = $_GET['action'] ?? 'list';
 $message = '';
 $error = '';

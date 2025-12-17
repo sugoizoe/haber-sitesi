@@ -8,6 +8,54 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 $admin_username = $_SESSION['admin_username'] ?? 'Admin';
+$admin_role = $_SESSION['admin_role'] ?? 'admin';
+
+require_once __DIR__ . '/../config.php';
+
+$error = '';
+$message = '';
+
+try {
+    $pdo = new PDO(
+        "mysql:host=$db_host;dbname=$db_name;charset=$db_charset",
+        $db_user,
+        $db_pass,
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch (PDOException $e) {
+    $error = 'Veritabanı bağlantı hatası: ' . $e->getMessage();
+}
+
+// İşlemler: approve / reject / delete
+if (!$error && isset($_GET['action'], $_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $action = $_GET['action'];
+    try {
+        if ($action === 'approve') {
+            $stmt = $pdo->prepare("UPDATE comments SET status='approved' WHERE id=?");
+            $stmt->execute([$id]);
+            $message = 'Yorum onaylandı';
+        } elseif ($action === 'reject') {
+            $stmt = $pdo->prepare("UPDATE comments SET status='rejected' WHERE id=?");
+            $stmt->execute([$id]);
+            $message = 'Yorum reddedildi';
+        } elseif ($action === 'delete') {
+            $stmt = $pdo->prepare("DELETE FROM comments WHERE id=?");
+            $stmt->execute([$id]);
+            $message = 'Yorum silindi';
+        }
+    } catch (PDOException $e) {
+        $error = 'İşlem hatası: ' . $e->getMessage();
+    }
+}
+
+// Yorumları çek
+$pending = $approved = $rejected = [];
+if (!$error) {
+    $pending = $pdo->query("SELECT c.id, c.author_name, c.content, c.created_at, n.title AS news_title FROM comments c JOIN news n ON n.id=c.news_id WHERE c.status='pending' ORDER BY c.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+    $approved = $pdo->query("SELECT c.id, c.author_name, c.content, c.created_at, n.title AS news_title FROM comments c JOIN news n ON n.id=c.news_id WHERE c.status='approved' ORDER BY c.created_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+    $rejected = $pdo->query("SELECT c.id, c.author_name, c.content, c.created_at, n.title AS news_title FROM comments c JOIN news n ON n.id=c.news_id WHERE c.status='rejected' ORDER BY c.created_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -93,6 +141,14 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        table { width:100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
+        th { background:#f8f9fa; }
+        .badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; }
+        .badge.pending { background:#fff7ed; color:#9a3412; }
+        .badge.approved { background:#dcfce7; color:#166534; }
+        .badge.rejected { background:#fee2e2; color:#991b1b; }
+        .actions a { margin-right:8px; text-decoration:none; }
     </style>
 </head>
 <body>
@@ -116,8 +172,102 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
             </div>
             
             <div class="content-box">
-                <h2>Yorumlar Yönetimi</h2>
-                <p style="margin-top: 20px; color: #666;">Yorum yönetimi özelliği yakında eklenecektir.</p>
+                <h2>Bekleyen Yorumlar</h2>
+                <?php if($error): ?><div class="error" style="margin:10px 0; background:#fee2e2; color:#991b1b; padding:10px; border-radius:6px;"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+                <?php if($message): ?><div class="message" style="margin:10px 0; background:#dcfce7; color:#166534; padding:10px; border-radius:6px;"><?= htmlspecialchars($message) ?></div><?php endif; ?>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Haber</th>
+                            <th>Yazar</th>
+                            <th>Yorum</th>
+                            <th>Tarih</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($pending as $c): ?>
+                        <tr>
+                            <td><?= (int)$c['id'] ?></td>
+                            <td><?= htmlspecialchars($c['news_title']) ?></td>
+                            <td><?= htmlspecialchars($c['author_name']) ?></td>
+                            <td><?= htmlspecialchars(mb_strimwidth($c['content'],0,120,'…','UTF-8')) ?></td>
+                            <td><?= htmlspecialchars(date('d.m.Y H:i', strtotime($c['created_at']))) ?></td>
+                            <td><span class="badge pending">Bekliyor</span></td>
+                            <td class="actions">
+                                <a href="comments.php?action=approve&id=<?= (int)$c['id'] ?>">Onayla</a>
+                                <a href="comments.php?action=reject&id=<?= (int)$c['id'] ?>">Reddet</a>
+                                <a href="comments.php?action=delete&id=<?= (int)$c['id'] }" onclick="return confirm('Silinsin mi?')">Sil</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:24px;">Onaylanan Son Yorumlar</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Haber</th>
+                            <th>Yazar</th>
+                            <th>Yorum</th>
+                            <th>Tarih</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($approved as $c): ?>
+                        <tr>
+                            <td><?= (int)$c['id'] ?></td>
+                            <td><?= htmlspecialchars($c['news_title']) ?></td>
+                            <td><?= htmlspecialchars($c['author_name']) ?></td>
+                            <td><?= htmlspecialchars(mb_strimwidth($c['content'],0,120,'…','UTF-8')) ?></td>
+                            <td><?= htmlspecialchars(date('d.m.Y H:i', strtotime($c['created_at']))) ?></td>
+                            <td><span class="badge approved">Onaylı</span></td>
+                            <td class="actions">
+                                <a href="comments.php?action=reject&id=<?= (int)$c['id'] ?>">Reddet</a>
+                                <a href="comments.php?action=delete&id=<?= (int)$c['id'] }" onclick="return confirm('Silinsin mi?')">Sil</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:24px;">Reddedilen Son Yorumlar</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Haber</th>
+                            <th>Yazar</th>
+                            <th>Yorum</th>
+                            <th>Tarih</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($rejected as $c): ?>
+                        <tr>
+                            <td><?= (int)$c['id'] ?></td>
+                            <td><?= htmlspecialchars($c['news_title']) ?></td>
+                            <td><?= htmlspecialchars($c['author_name']) ?></td>
+                            <td><?= htmlspecialchars(mb_strimwidth($c['content'],0,120,'…','UTF-8')) ?></td>
+                            <td><?= htmlspecialchars(date('d.m.Y H:i', strtotime($c['created_at']))) ?></td>
+                            <td><span class="badge rejected">Reddedildi</span></td>
+                            <td class="actions">
+                                <a href="comments.php?action=approve&id=<?= (int)$c['id'] ?>">Onayla</a>
+                                <a href="comments.php?action=delete&id=<?= (int)$c['id'] }" onclick="return confirm('Silinsin mi?')">Sil</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

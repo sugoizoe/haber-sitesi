@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             
             // Admin kaydını sorgula
-            $stmt = $pdo->prepare('SELECT id, username, password FROM admins WHERE username = ?');
+            $stmt = $pdo->prepare('SELECT id, username, password, role FROM admins WHERE username = ?');
             $stmt->execute([$username]);
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
             
@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Başarılı giriş
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $admin['username'];
+                $_SESSION['admin_role'] = $admin['role'] ?? 'admin';
                 $_SESSION['login_time'] = time();
                 
                 header('Location: admin/dashboard.php');

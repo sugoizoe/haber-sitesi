@@ -33,6 +33,16 @@ try {
             username VARCHAR(100) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             email VARCHAR(100),
+            role ENUM('admin','editor') NOT NULL DEFAULT 'admin',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+        CREATE TABLE IF NOT EXISTS admins (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            email VARCHAR(100),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -103,6 +113,9 @@ try {
     // Default admin ekle (kullanıcı adı: admin, şifre: 12345)
     $default_password = password_hash('12345', PASSWORD_DEFAULT);
     $pdo->exec("
+        INSERT IGNORE INTO admins (username, password, email, role) VALUES
+        ('admin', '$default_password', 'admin@example.com', 'admin')
+    ");
         INSERT IGNORE INTO admins (username, password, email) VALUES
         ('admin', '$default_password', 'admin@example.com')
     ");

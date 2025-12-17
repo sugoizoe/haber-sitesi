@@ -8,6 +8,7 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 $admin_username = $_SESSION['admin_username'] ?? 'Admin';
+$admin_role = $_SESSION['admin_role'] ?? 'admin';
 ?>
 <!DOCTYPE html>
 <html lang="tr">
