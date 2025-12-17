@@ -3,265 +3,112 @@ session_start();
 require_once __DIR__ . '/config.php';
 
 try {
-  $pdo = new PDO(
-    "mysql:host=$db_host;dbname=$db_name;charset=$db_charset",
-    $db_user,
-    $db_pass,
-    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-  );
+    $pdo = new PDO(
+        "mysql:host=$db_host;dbname=$db_name;charset=$db_charset",
+        $db_user, $db_pass,
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
 } catch (PDOException $e) {
-  $db_error = $e->getMessage();
+    die('DB: ' . htmlspecialchars($e->getMessage()));
 }
 
-$news = [];
-if (!isset($db_error)) {
-  $stmt = $pdo->query("SELECT id, title, content, image_url, created_at FROM news ORDER BY created_at DESC LIMIT 12");
-  $news = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-?>
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Haber Sitesi</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:#f6f7fb; color:#222; }
-    .navbar { position:sticky; top:0; background:#111827; color:#fff; padding:12px 20px; display:flex; gap:16px; align-items:center; z-index:10; }
-    .navbar a { color:#e5e7eb; text-decoration:none; padding:8px 10px; border-radius:6px; }
-    .navbar a:hover { background:#1f2937; }
-    .brand { font-weight:700; color:#fff; margin-right:auto; }
-    .container { max-width:1100px; margin:24px auto; padding:0 16px; }
-    .hero { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; padding:40px 24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.15); }
-    .hero h1 { margin:0 0 8px; font-size:32px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-top:20px; }
-    .card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.06); display:flex; flex-direction:column; }
-    .card img { width:100%; height:160px; object-fit:cover; background:#eef2ff; }
-    .card .p { padding:14px; }
-    .card h3 { margin:0 0 8px; font-size:18px; color:#111827; }
-    .card p { margin:0; color:#4b5563; font-size:14px; line-height:1.4; }
-    .muted { color:#6b7280; font-size:12px; margin-top:8px; }
-    .btn { display:inline-block; padding:10px 14px; background:#6366f1; color:#fff; text-decoration:none; border-radius:8px; margin-top:10px; }
-    .btn:hover { background:#4f46e5; }
-    footer { text-align:center; color:#6b7280; padding:30px 0; }
-    .empty { background:#fff; padding:30px; border-radius:12px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,.06); }
-  </style>
-  <link rel="icon" href="uploads/amasra-btv-logo.svg">
-  <meta name="description" content="Basit Haber Sitesi">
-  <meta name="theme-color" content="#111827">
-  <script>
-    function truncate(t, n){ return t.length>n ? t.slice(0,n).trim()+"…" : t }
-  </script>
-</head>
-<body>
-  <nav class="navbar">
-    <a class="brand" href="/habersitesi/">HaberSitesi</a>
-    <a href="/habersitesi/">Anasayfa</a>
-    <a href="/habersitesi/user_login.php">Giriş</a>
-    <a href="/habersitesi/register.php">Kayıt Ol</a>
-    <a href="/habersitesi/admin/dashboard.php">Admin</a>
-  </nav>
+$is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['admin_id']);
+$user_role = $_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? 'Guest';
+$user_name = $_SESSION['user_username'] ?? $_SESSION['admin_username'] ?? '';
+$page = $_GET['page'] ?? 'home';
+$page = preg_replace('/[^a-z_]/', '', $page);
 
-  <div class="container">
-    <div class="hero">
-      <h1>Günün Haberleri</h1>
-      <div style="opacity:.9">Son eklenen haberler burada listelenir.</div>
-    </div>
-
-    <?php if(isset($db_error)): ?>
-      <div class="empty" style="margin-top:20px;color:#b91c1c;">Veritabanı hatası: <?= htmlspecialchars($db_error) ?></div>
-    <?php elseif(empty($news)): ?>
-      <div class="empty" style="margin-top:20px;">Henüz haber yok. Admin panelinden haber ekleyin.</div>
-    <?php else: ?>
-      <div class="grid" style="margin-top:20px;">
-        <?php foreach($news as $n): ?>
-          <article class="card">
-            <?php if(!empty($n['image_url'])): ?>
-              <img src="<?= htmlspecialchars($n['image_url']) ?>" alt="">
-            <?php else: ?>
-              <img src="uploads/amasra-hero.jpg" alt="">
-            <?php endif; ?>
-            <div class="p">
-              <h3><?= htmlspecialchars($n['title']) ?></h3>
-              <p><?= htmlspecialchars(mb_substr(strip_tags($n['content']),0,120)) ?><?= mb_strlen(strip_tags($n['content']))>120?'…':'' ?></p>
-              <div class="muted"><?= htmlspecialchars(date('d.m.Y H:i', strtotime($n['created_at']))) ?></div>
-              <a class="btn" href="news_detail.php?id=<?= (int)$n['id'] ?>">Oku</a>
-            </div>
-          </article>
-        <?php endforeach; ?>
-      </div>
-    <?php endif; ?>
-  </div>
-
-  <footer>
-    © <?= date('Y') ?> HaberSitesi
-  </footer>
-</body>
-</html>
-<?php
-require_once __DIR__ . '/db.php';
-
-$stmt = $pdo->query("SELECT id, baslik, ozet, tarih FROM haberler ORDER BY tarih DESC LIMIT 1");
-$hero = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-
-$stmt2 = $pdo->query("SELECT id, baslik, ozet, tarih FROM haberler ORDER BY tarih DESC LIMIT 10");
-$liste = $stmt2->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-$mini = $liste;
-if ($hero) {
-  $mini = array_values(array_filter($mini, fn($x) => (int)$x['id'] !== (int)$hero['id']));
-}
-$mini = array_slice($mini, 0, 6);
-
-function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
-function fmtDate($dt) {
-  if (!$dt) return '';
-  $ts = strtotime($dt);
-  return $ts ? date('d.m.Y H:i', $ts) : (string)$dt;
+// Erişim kontrolleri
+$protected = ['admin' => ['Admin'], 'editor' => ['Admin', 'Editor'], 'profile' => ['User', 'Admin', 'Editor']];
+if (isset($protected[$page]) && !in_array($user_role, $protected[$page])) {
+    $page = 'home';
+    $error = 'Erişim reddedildi.';
 }
 ?>
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Amasra ve Bartın gündemi - Amasra BTV" />
-  <title>Amasra BTV</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haber Sitesi</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto; background:#f6f7fb; color:#222; }
+        header { background:#111827; color:#fff; padding:12px 0; sticky:true; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+        nav { max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 16px; }
+        .brand { font-weight:700; font-size:18px; }
+        .nav-links { display:flex; gap:16px; align-items:center; }
+        .nav-links a { color:#e5e7eb; text-decoration:none; padding:8px 12px; border-radius:6px; }
+        .nav-links a:hover { background:#1f2937; }
+        .btn-login { background:#6366f1; color:#fff !important; }
+        .btn-login:hover { background:#4f46e5 !important; }
+        .btn-logout { background:#ef4444; color:#fff !important; }
+        main { max-width:1200px; margin:0 auto; padding:20px 16px; }
+        .container { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.06); padding:20px; }
+        h1 { margin-bottom:16px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
+        .card { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 5px rgba(0,0,0,.06); }
+        .card img { width:100%; height:160px; object-fit:cover; }
+        .card-body { padding:12px; }
+        .card h3 { margin:0 0 6px; font-size:15px; }
+        .card p { margin:0; color:#6b7280; font-size:12px; }
+        .card .meta { color:#9ca3af; font-size:11px; margin-top:6px; }
+        .btn { display:inline-block; padding:10px 14px; background:#6366f1; color:#fff; text-decoration:none; border-radius:8px; border:none; cursor:pointer; font-size:14px; }
+        .btn:hover { background:#4f46e5; }
+        .btn-sm { padding:6px 10px; font-size:12px; }
+        .error { background:#fee2e2; color:#991b1b; padding:12px; border-radius:8px; margin-bottom:16px; }
+        .success { background:#dcfce7; color:#166534; padding:12px; border-radius:8px; margin-bottom:16px; }
+        footer { background:#111827; color:#e5e7eb; text-align:center; padding:24px 16px; margin-top:40px; font-size:13px; }
+        .form-group { margin-bottom:12px; }
+        input, textarea, select { width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:8px; font-size:14px; font-family:inherit; }
+        textarea { resize:vertical; min-height:100px; }
+        @media (max-width:768px) {
+            .nav-links { gap:8px; flex-wrap:wrap; }
+            .grid { grid-template-columns:1fr; }
+            nav { flex-direction:column; gap:12px; }
+        }
+        table { width:100%; border-collapse:collapse; margin-top:10px; }
+        th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; font-size:13px; }
+        th { background:#f8f9fa; }
+        .badge { display:inline-block; padding:3px 6px; border-radius:4px; font-size:11px; }
+        .badge.admin { background:#e0e7ff; color:#3730a3; }
+        .badge.editor { background:#dcfce7; color:#166534; }
+        .badge.user { background:#f3e8ff; color:#6b21a8; }
+    </style>
 </head>
-
 <body>
-<header class="topbar">
-  <div class="wrap">
-    <a class="logo" href="index.php">
-      <img src="uploads/amasra-btv-logo.svg" alt="Amasra BTV Logo" onerror="this.style.display='none'" />
-      <span class="logo-text">Amasra BTV</span>
-    </a>
-
-    <nav aria-label="Ana Menü">
-      <a class="navlink" href="#">Gündem</a>
-      <a class="navlink" href="#">Ekonomi</a>
-      <a class="navlink" href="#">Spor</a>
-      <a class="navlink" href="#">Teknoloji</a>
-      <a class="navlink" href="#">Magazin</a>
-    </nav>
-
-    <div class="actions">
-      <div class="search" role="search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 21l-3.8-3.8M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <input placeholder="Ara (demo)" aria-label="Haber ara" />
-      </div>
-      <a class="login" href="login.php">Giriş</a>
-      <a class="register" href="register.php">Kayıt Ol</a>
-    </div>
-  </div>
-</header>
-
-<main class="container">
-
-  
-  <section class="hero">
-    <article class="lead">
-      <img class="cover" src="uploads/amasra-hero.jpg" alt="Amasra manşet görseli" onerror="this.onerror=null;this.src='https://picsum.photos/1200/640?random=3'" />
-
-      <div class="meta">
-        <span class="chip">SON DAKİKA</span>
-
-        <?php if ($hero): ?>
-          <h1><?= h($hero['baslik']) ?></h1>
-          <p>
-            <time><?= h(fmtDate($hero['tarih'])) ?></time>
-            <?= h($hero['ozet']) ?>
-          </p>
-          <a class="btn" href="haber.php?id=<?= (int)$hero['id'] ?>">Haberi oku</a>
-        <?php else: ?>
-          <h1>Henüz haber yok</h1>
-          <p>Veritabanında haber bulunamadı.</p>
-        <?php endif; ?>
-      </div>
-    </article>
-
-    <aside class="herolist" aria-label="Son haberler">
-      <h3 class="side-title">Son Haberler</h3>
-
-     <?php foreach ($mini as $m): ?>
-  <a class="mini" href="haber.php?id=<?= (int)$m['id'] ?>">
-  <img src="uploads/amasra_thumb_<?= (int)$m['id'] ?>.jpg" alt="Haber görseli" onerror="this.onerror=null;this.src='https://picsum.photos/300/220?random=' + <?= (int)$m['id'] ?>" />
-    <div>
-      <h3><?= h($m['baslik']) ?></h3>
-      <div class="meta-row">
-        <span><?= h(fmtDate($m['tarih'])) ?></span>
-      </div>
-    </div>
-  </a>
-<?php endforeach; ?>
-    </aside>
-  </section>
-
-  
-  <section class="content">
-  <div class="main-col">
-    <h2 class="section-title">Güncel Haberler</h2>
-
-    <div class="cards">
-      <?php foreach ($liste as $hbr): ?>
-        <a href="haber.php?id=<?= (int)$hbr['id'] ?>" class="card">
-          <img src="uploads/amasra_card_<?= (int)$hbr['id'] ?>.jpg" alt="Haber görseli" onerror="this.onerror=null;this.src='https://picsum.photos/640/400?random=' + <?= (int)$hbr['id'] ?>" />
-          <div class="pad">
-            <h4><?= h($hbr['baslik']) ?></h4>
-            <p><?= h($hbr['ozet']) ?></p>
-          </div>
-        </a>
-      <?php endforeach; ?>
-    </div>
-
-    <nav class="pagination" aria-label="Sayfalama">
-      <span class="page active">1</span>
-    </nav>
-  </div>
-
-  <aside class="sidebar">
-    <div class="block">
-      <h5>Son Eklenenler</h5>
-      <div class="list">
-        <?php foreach ($liste as $h): ?>
-          <a href="haber.php?id=<?= (int)$h['id'] ?>">
-            <span class="dot"></span>
-            <div>
-              <div><?= h($h['baslik']) ?></div>
-              <small><?= h(fmtDate($h['tarih'])) ?></small>
+    <header>
+        <nav>
+            <div class="brand">🗞️ HaberSitesi</div>
+            <div class="nav-links">
+                <a href="index.php">Anasayfa</a>
+                <?php if ($is_logged_in): ?>
+                    <?php if ($user_role === 'Admin'): ?><a href="index.php?page=admin">Admin</a><?php elseif ($user_role === 'Editor'): ?><a href="index.php?page=editor">İçerik</a><?php endif; ?>
+                    <span style="font-size:12px;"><?= htmlspecialchars($user_name) ?> <span class="badge <?= strtolower($user_role) ?>"><?= $user_role ?></span></span>
+                    <a href="index.php?page=logout" class="btn-logout">Çıkış</a>
+                <?php else: ?>
+                    <a href="index.php?page=login" class="btn-login">Giriş</a>
+                    <a href="index.php?page=register" class="btn-login">Kayıt</a>
+                <?php endif; ?>
             </div>
-          </a>
-        <?php endforeach; ?>
-      </div>
-    </div>
+        </nav>
+    </header>
 
-    <div class="block">
-      <h5>Etiketler (Amasra & Bartın)</h5>
-      <div class="tags">
-        <a class="tag" href="#">Amasra</a>
-        <a class="tag" href="#">Bartın</a>
-        <a class="tag" href="#">Turizm</a>
-        <a class="tag" href="#">Kültür</a>
-      </div>
-    </div>
-  </aside>
-</section>
+    <main>
+        <?php if (isset($error)): ?><div class="error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+        <?php
+        switch ($page) {
+            case 'home': include 'pages/home.php'; break;
+            case 'login': include 'pages/login.php'; break;
+            case 'register': include 'pages/register.php'; break;
+            case 'logout': include 'pages/logout.php'; exit;
+            case 'admin': if ($user_role === 'Admin') include 'pages/admin.php'; break;
+            case 'editor': if (in_array($user_role, ['Admin', 'Editor'])) include 'pages/editor.php'; break;
+            default: include 'pages/home.php';
+        }
+        ?>
+    </main>
 
-
-</main>
-
-<footer>
-  <div class="wrap">
-    <p>© Amasra BTV — Amasra & Bartın haberleri (Demo).</p>
-  </div>
-</footer>
+    <footer>© 2025 HaberSitesi</footer>
 </body>
 </html>
