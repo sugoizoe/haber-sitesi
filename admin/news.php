@@ -31,6 +31,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
     $content = $_POST['content'] ?? '';
     $category_id = $_POST['category_id'] ?? 1;
     $image_url = $_POST['image_url'] ?? '';
+    // Eğer dosya yüklemesi varsa, uploads/ içine kaydet
+    if (isset($_FILES['image']) && is_array($_FILES['image']) && ($_FILES['image']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        $name = $_FILES['image']['name'];
+        $tmp = $_FILES['image']['tmp_name'];
+        $size = (int)$_FILES['image']['size'];
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        if (in_array($ext, $allowed, true) && $size <= 5*1024*1024) {
+            $uploadDir = dirname(__DIR__) . '/uploads';
+            if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0777, true); }
+            $newName = 'news_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $dest = $uploadDir . '/' . $newName;
+            if (@move_uploaded_file($tmp, $dest)) {
+                $image_url = 'uploads/' . $newName;
+            }
+        }
+    }
     
     if (!empty($title) && !empty($content)) {
         try {
@@ -241,7 +258,7 @@ try {
                 <h2><?= $action === 'add' ? 'Yeni Haber Ekle' : 'Haberler' ?></h2>
                 
                 <?php if ($action === 'add'): ?>
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="title">Başlık:</label>
                             <input type="text" id="title" name="title" required>
@@ -262,8 +279,10 @@ try {
                         </div>
                         
                         <div class="form-group">
-                            <label for="image_url">Resim URL:</label>
-                            <input type="url" id="image_url" name="image_url">
+                            <label for="image">Resim Yükle (veya URL girin):</label>
+                            <input type="file" id="image" name="image" accept="image/*">
+                            <div style="height:8px"></div>
+                            <input type="url" id="image_url" name="image_url" placeholder="https://...">
                         </div>
                         
                         <button type="submit" class="btn">Kaydet</button>
