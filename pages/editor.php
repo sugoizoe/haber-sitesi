@@ -9,6 +9,7 @@ $success = $error = '';
 $action = $_GET['action'] ?? 'list';
 $action = preg_replace('/[^a-z_]/', '', $action);
 $admin_id = $_SESSION['admin_id'] ?? 0;
+$upload_error = '';
 
 // Haber ekle
 if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,20 +20,37 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $image_url = '';
     
     // Resim yükleme
-    if ($image && $image['error'] === UPLOAD_ERR_OK) {
-        $ext = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
-        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
-            $path = __DIR__ . '/../uploads/news_' . time() . '.' . $ext;
-            if (move_uploaded_file($image['tmp_name'], $path)) {
-                $image_url = 'uploads/news_' . time() . '.' . $ext;
+    if ($image && $image['error'] !== UPLOAD_ERR_NO_FILE) {
+        if ($image['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                $uploads_dir = __DIR__ . '/../uploads';
+                if (!is_dir($uploads_dir)) {
+                    @mkdir($uploads_dir, 0755, true);
+                }
+                if (!is_dir($uploads_dir) || !is_writable($uploads_dir)) {
+                    $upload_error = 'Yükleme klasörü yazılabilir değil.';
+                } else {
+                    $filename = 'news_' . time() . '.' . $ext;
+                    $path = $uploads_dir . '/' . $filename;
+                    if (move_uploaded_file($image['tmp_name'], $path)) {
+                        $image_url = 'uploads/' . $filename; // store relative path consistently
+                    } else {
+                        $upload_error = 'Resim yüklenemedi.';
+                    }
+                }
+            } else {
+                $upload_error = 'Geçersiz dosya türü. Sadece jpg, jpeg, png, gif.';
             }
+        } else {
+            $upload_error = 'Resim yükleme hatası (kod: ' . (int)$image['error'] . ').';
         }
     }
     
     if ($title && $content) {
         $ins = $pdo->prepare('INSERT INTO news (title, content, image_url, category_id, admin_user_id, is_published) VALUES (:t, :c, :i, :cat, :a, 1)');
         $ins->execute([':t' => $title, ':c' => $content, ':i' => $image_url, ':cat' => $cat_id, ':a' => $admin_id]);
-        $success = 'Haber oluşturuldu.';
+        $success = 'Haber oluşturuldu.' . ($upload_error ? ' (Resim: ' . $upload_error . ')' : '');
     } else {
         $error = 'Başlık ve içerik gerekli.';
     }

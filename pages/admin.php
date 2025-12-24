@@ -42,6 +42,10 @@ $users = $pdo->query('SELECT id, name, username, email, role, is_active FROM adm
 
 <div class="container">
     <h1>Admin Panel</h1>
+    <div style="display:flex; gap:12px; margin:12px 0 20px; flex-wrap:wrap;">
+        <a href="index.php?page=editor&action=add" class="btn">+ Yeni Haber</a>
+        <a href="index.php?page=editor" class="btn btn-sm" style="background:#10b981;">Haberleri Yönet</a>
+    </div>
     
     <?php if (isset($success)): ?><div class="success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
     

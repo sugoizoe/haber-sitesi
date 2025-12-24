@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if ($admin && password_verify($password, $admin['password']) && $admin['role'] !== 'User') {
                         $_SESSION['user_id'] = $admin['id'];
+                        // Track admin/editor id for role-based pages
+                        $_SESSION['admin_id'] = $admin['id'];
                         $_SESSION['user_name'] = $admin['username'];
                         $_SESSION['user_role'] = $admin['role'];
                         header('Location: ?page=home');
@@ -50,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if ($user && password_verify($password, $user['password'])) {
                         $_SESSION['user_id'] = $user['id'];
+                        unset($_SESSION['admin_id']);
                         $_SESSION['user_name'] = $user['username'];
                         $_SESSION['user_role'] = 'User';
                         header('Location: ?page=home');
